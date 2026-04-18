@@ -1,0 +1,73 @@
+.navbar {
+  display: flex;
+  background: var(--navbar-bg);
+  border-top: 1px solid rgba(var(--accent-rgb), 0.12);
+  padding: 10px 0 32px; /* 32px bottom clears home-indicator on iOS */
+  z-index: 10;
+  flex-shrink: 0;
+}
+
+.navbar-btn {
+  flex: 1;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 4px 0;
+  position: relative;
+  /* Large touch target for tremor tolerance */
+  min-height: 72px;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+  opacity: 0.42;
+}
+
+.navbar-btn--active {
+  opacity: 1;
+}
+
+.navbar-btn:active {
+  transform: scale(0.92);
+}
+
+.navbar-icon-wrap {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease;
+}
+
+.navbar-btn--active .navbar-icon-wrap {
+  background: rgba(var(--accent-rgb), 0.14);
+}
+
+.navbar-icon {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  filter: brightness(0) invert(1) sepia(1) saturate(2) hue-rotate(120deg);
+}
+
+.navbar-label {
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  font-family: 'Krub', sans-serif;
+}
+
+.navbar-active-bar {
+  position: absolute;
+  top: 0;
+  left: 20%;
+  right: 20%;
+  height: 3px;
+  border-radius: 0 0 3px 3px;
+  background: var(--accent);
+}

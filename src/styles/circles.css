@@ -36,10 +36,10 @@
   right: -80px;
   width: 340px;
   height: 340px;
-  background: rgba(178, 240, 232, 0.09);
+  background: rgba(var(--accent-rgb), 0.09);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(178, 240, 232, 0.2);
+  border: 1px solid rgba(var(--accent-rgb), 0.2);
   animation: floatA 9s ease-in-out infinite;
 }
 
@@ -48,10 +48,10 @@
   right: 80px;
   width: 180px;
   height: 180px;
-  background: rgba(178, 240, 232, 0.06);
+  background: rgba(var(--accent-rgb), 0.06);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(178, 240, 232, 0.14);
+  border: 1px solid rgba(var(--accent-rgb), 0.14);
   animation: floatB 12s ease-in-out infinite;
 }
 
@@ -60,10 +60,10 @@
   left: -90px;
   width: 300px;
   height: 300px;
-  background: rgba(178, 240, 232, 0.07);
+  background: rgba(var(--accent-rgb), 0.07);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-  border: 1px solid rgba(178, 240, 232, 0.16);
+  border: 1px solid rgba(var(--accent-rgb), 0.16);
   animation: floatC 11s ease-in-out infinite;
 }
 
@@ -72,9 +72,9 @@
   left: 30%;
   width: 220px;
   height: 220px;
-  background: rgba(178, 240, 232, 0.04);
+  background: rgba(var(--accent-rgb), 0.04);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(178, 240, 232, 0.1);
+  border: 1px solid rgba(var(--accent-rgb), 0.1);
   animation: floatD 14s ease-in-out infinite;
 }

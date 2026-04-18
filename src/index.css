@@ -1,3 +1,36 @@
+/* ── Theme tokens ───────────────────────────────────────── */
+:root,
+[data-theme="dark"] {
+  --bg:          #02353C;
+  --accent:      #7ef0dc;
+  --accent-rgb:  126, 240, 220;
+  --card:        #0a4248;
+  --card-2:      #145a5a;
+  --card-3:      #0e4448;
+  --chip-border: #1e5e62;
+  --navbar-bg:   #032e35;
+  --med-on:      #2aa870;
+  --med-off:     #2a5050;
+  --again-bg:    #2a6e5e;
+  --badge-bg:    #2a7a5a;
+}
+
+[data-theme="light"] {
+  --bg:          #dff5f0;
+  --accent:      #0a5040;
+  --accent-rgb:  10, 80, 64;
+  --card:        #b5e0da;
+  --card-2:      #9ad9d0;
+  --card-3:      #a8ddd6;
+  --chip-border: #7ab5ae;
+  --navbar-bg:   #a8d8d0;
+  --med-on:      #1a8060;
+  --med-off:     #6aada8;
+  --again-bg:    #1a7060;
+  --badge-bg:    #1a8060;
+}
+
+/* ── Base ───────────────────────────────────────────────── */
 body {
   margin: 0;
   font-family: 'Krub', sans-serif;

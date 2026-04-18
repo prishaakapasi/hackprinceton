@@ -40,18 +40,18 @@ export default function LoginScreen() {
           {large ? (
             /* Collapse / shrink icon */
             <>
-              <path d="M8 1V8H1"  stroke="#b2f0e8" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M14 21V14H21" stroke="#b2f0e8" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M21 8H14V1"  stroke="#b2f0e8" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M1 14H8V21"  stroke="#b2f0e8" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M8 1V8H1"  stroke="var(--accent)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M14 21V14H21" stroke="var(--accent)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M21 8H14V1"  stroke="var(--accent)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M1 14H8V21"  stroke="var(--accent)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
             </>
           ) : (
             /* Expand icon */
             <>
-              <path d="M1 8V1H8"   stroke="#b2f0e8" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M21 14V21H14" stroke="#b2f0e8" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M14 1H21V8"  stroke="#b2f0e8" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M8 21H1V14"  stroke="#b2f0e8" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M1 8V1H8"   stroke="var(--accent)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M21 14V21H14" stroke="var(--accent)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M14 1H21V8"  stroke="var(--accent)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M8 21H1V14"  stroke="var(--accent)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
             </>
           )}
         </svg>

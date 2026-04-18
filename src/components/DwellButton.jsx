@@ -71,9 +71,10 @@ export default function DwellButton({ label, onFire, className = "" }) {
     cancel();
   }, [cancel]);
 
+  const accentRgb = getComputedStyle(document.documentElement).getPropertyValue("--accent-rgb").trim() || "126, 240, 220";
   const ringStyle = {
     background: `conic-gradient(
-      rgba(178, 240, 232, 0.9) ${progress * 3.6}deg,
+      rgba(${accentRgb}, 0.9) ${progress * 3.6}deg,
       transparent ${progress * 3.6}deg
     )`,
   };
