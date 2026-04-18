@@ -1,0 +1,88 @@
+.eesha-walk {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 36px;
+  padding: 32px 24px;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.eesha-cadence-badge {
+  font-family: 'Krub', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: #b2f0e8;
+  opacity: 0.55;
+  text-transform: uppercase;
+}
+
+.eesha-stat-row {
+  display: flex;
+  gap: 32px;
+}
+
+.eesha-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.eesha-stat-value {
+  font-family: 'Lemon', cursive;
+  font-size: 36px;
+  color: #b2f0e8;
+}
+
+.eesha-stat-label {
+  font-family: 'Krub', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #b2f0e8;
+  opacity: 0.45;
+}
+
+/* Metronome pulse */
+.eesha-pulse {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  background: rgba(178, 240, 232, 0.08);
+  border: 2px solid rgba(178, 240, 232, 0.25);
+  animation: pulse linear infinite;
+}
+
+@keyframes pulse {
+  0%   { transform: scale(0.92); opacity: 0.6; box-shadow: 0 0 0 0   rgba(178,240,232,0.3); }
+  50%  { transform: scale(1.06); opacity: 1;   box-shadow: 0 0 0 20px rgba(178,240,232,0.0); }
+  100% { transform: scale(0.92); opacity: 0.6; box-shadow: 0 0 0 0   rgba(178,240,232,0.3); }
+}
+
+.eesha-stop-btn {
+  padding: 18px 52px;
+  border-radius: 50px;
+  background: rgba(178, 240, 232, 0.1);
+  border: 1.5px solid rgba(178, 240, 232, 0.35);
+  color: #b2f0e8;
+  font-size: 18px;
+  font-weight: 700;
+  font-family: 'Krub', sans-serif;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.15s ease;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+}
+
+.eesha-stop-btn:hover  { background: rgba(178, 240, 232, 0.18); transform: scale(1.04); }
+.eesha-stop-btn:active { transform: scale(0.97); }

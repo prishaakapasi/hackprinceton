@@ -17,7 +17,7 @@ export default function SignUpScreen() {
     }
     setName(input.trim());
     localStorage.setItem("synova-name", input.trim());
-    navigate("/onboarding");
+    navigate("/");
   };
 
   return (

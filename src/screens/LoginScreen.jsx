@@ -1,9 +1,13 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/circles.css";
 import "./LoginScreen.css";
 
 export default function LoginScreen() {
   const navigate = useNavigate();
+  const [large, setLarge] = useState(false);
+
+  const btnSizeClass = large ? "login-btn--size-3" : "login-btn--size-1";
 
   return (
     <div className="login-screen">
@@ -22,22 +26,37 @@ export default function LoginScreen() {
 
       {/* Buttons */}
       <div className="login-buttons">
-        <button className="login-btn login-btn--primary" onClick={() => navigate("/signup")}>
+        <button className={`login-btn login-btn--primary ${btnSizeClass}`} onClick={() => navigate("/signup")}>
           Sign Up
         </button>
-        <button className="login-btn login-btn--secondary" onClick={() => navigate("/login-form")}>
+        <button className={`login-btn login-btn--secondary ${btnSizeClass}`} onClick={() => navigate("/login-form")}>
           Log In
         </button>
       </div>
 
-      {/* Adjust button size */}
-      <div className="login-adjust" onClick={() => alert("Button size adjustment coming soon!")}>
-        <span className="login-adjust-label">Adjust button size</span>
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-          <path d="M1 6V1H6" stroke="#b2f0e8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-          <path d="M15 10V15H10" stroke="#b2f0e8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      {/* Expand toggle */}
+      <button className="size-toggle" onClick={() => setLarge(p => !p)}>
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+          {large ? (
+            /* Collapse / shrink icon */
+            <>
+              <path d="M8 1V8H1"  stroke="#b2f0e8" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M14 21V14H21" stroke="#b2f0e8" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M21 8H14V1"  stroke="#b2f0e8" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M1 14H8V21"  stroke="#b2f0e8" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+            </>
+          ) : (
+            /* Expand icon */
+            <>
+              <path d="M1 8V1H8"   stroke="#b2f0e8" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M21 14V21H14" stroke="#b2f0e8" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M14 1H21V8"  stroke="#b2f0e8" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M8 21H1V14"  stroke="#b2f0e8" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+            </>
+          )}
         </svg>
-      </div>
+        <span className="size-toggle-label">{large ? "Smaller" : "Larger"}</span>
+      </button>
 
     </div>
   );

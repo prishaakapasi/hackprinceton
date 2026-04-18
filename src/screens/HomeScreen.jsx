@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { usePatient } from "../context/PatientContext";
+import DwellButton from "../components/DwellButton";
 import "../styles/circles.css";
 import "./HomeScreen.css";
 
@@ -67,7 +68,7 @@ export default function HomeScreen() {
       <div className="output-box-wrap">
         <div className="output-box">
           <span className={`output-text${spoken ? "" : " output-text--empty"}`}>
-            {spoken || "Tap a phrase to speak"}
+            {spoken || "Hold a phrase to speak"}
           </span>
           {spoken && (
             <button className="again-btn" onClick={() => speak(spoken)}>
@@ -81,15 +82,16 @@ export default function HomeScreen() {
       <div className={`phrase-grid-wrap ${expanded ? "phrase-grid-wrap--expanded" : "phrase-grid-wrap--normal"}`}>
         <div className={`phrase-grid ${expanded ? "phrase-grid--expanded" : "phrase-grid--normal"}`}>
           {PHRASES.map(({ label }) => (
-            <button
+            <DwellButton
               key={label}
-              onClick={() => speak(label)}
-              className={`phrase-btn ${medOn ? "phrase-btn--med" : "phrase-btn--full"}`}
-              onPointerDown={e => e.currentTarget.style.opacity = "0.7"}
-              onPointerUp={e => e.currentTarget.style.opacity = "1"}
-            >
-              {label}
-            </button>
+              label={label}
+              onFire={() => speak(label)}
+              className={
+                expanded
+                  ? (medOn ? "dwell-btn--med-exp" : "dwell-btn--full-exp")
+                  : (medOn ? "dwell-btn--med"     : "dwell-btn--full")
+              }
+            />
           ))}
         </div>
 
