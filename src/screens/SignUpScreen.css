@@ -1,0 +1,124 @@
+.signup-screen {
+  min-height: 100vh;
+  background: #0a3d3d;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  padding: 40px 32px;
+  box-sizing: border-box;
+}
+
+/* Back button */
+.back-btn {
+  position: absolute;
+  top: 48px;
+  left: 32px;
+  background: none;
+  border: none;
+  color: #b2f0e8;
+  font-size: 17px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  opacity: 0.7;
+  z-index: 1;
+  font-family: 'Krub', sans-serif;
+}
+
+/* Logo */
+.signup-logo-wrap {
+  text-align: center;
+  margin-bottom: 48px;
+  z-index: 1;
+}
+
+.signup-logo {
+  font-family: 'Lemon', cursive;
+  font-size: 48px;
+  color: #b2f0e8;
+  margin-bottom: 10px;
+}
+
+.signup-subheading {
+  color: #b2f0e8;
+  font-size: 18px;
+  opacity: 0.7;
+}
+
+/* Form */
+.signup-form {
+  width: 100%;
+  max-width: 340px;
+  z-index: 1;
+}
+
+.form-field {
+  margin-bottom: 24px;
+}
+
+.form-label {
+  display: block;
+  color: #b2f0e8;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  opacity: 0.7;
+}
+
+.form-input {
+  width: 100%;
+  padding: 20px 22px;
+  border-radius: 16px;
+  background: #1a5454;
+  color: #b2f0e8;
+  font-size: 20px;
+  outline: none;
+  box-sizing: border-box;
+  font-family: 'Krub', sans-serif;
+}
+
+.form-input--normal { border: 1.5px solid #2a6464; }
+.form-input--error  { border: 1.5px solid #ff6b6b; }
+
+.form-error {
+  color: #ff8888;
+  font-size: 15px;
+  margin-top: 6px;
+  padding-left: 4px;
+}
+
+.signup-btn {
+  width: 100%;
+  padding: 22px;
+  border-radius: 50px;
+  background: #1a5c5c;
+  border: none;
+  color: #b2f0e8;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  font-family: 'Krub', sans-serif;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4), 0 1px 4px rgba(178, 240, 232, 0.15);
+}
+
+.signup-login-link {
+  text-align: center;
+  margin-top: 22px;
+  color: #b2f0e8;
+  font-size: 15px;
+  opacity: 0.5;
+}
+
+.signup-login-link span {
+  opacity: 1;
+  cursor: pointer;
+  text-decoration: underline;
+}
