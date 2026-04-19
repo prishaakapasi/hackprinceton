@@ -1,0 +1,118 @@
+import socket
+import json
+import time
+import threading
+import numpy as np
+from collections import deque
+from pygame import mixer, sndarray
+
+# --- CONFIGURATION ---
+UDP_PORT = 5555
+SAMPLE_RATE = 44100
+VAR_THRESHOLD = 0.8  # Adjust this: higher = less sensitive to jitters
+MIN_STEP_INTERVAL = 0.45 
+FREEZE_TIME = 2.5
+
+class SyncStride:
+    def __init__(self):
+        mixer.pre_init(SAMPLE_RATE, -16, 2, 512)
+        mixer.init()
+        self.accel_buffer = deque(maxlen=15)
+        self.step_times = deque(maxlen=5)
+        self.last_step_time = time.time()
+        self.current_bpm = 90
+        self.is_frozen = False
+        self.side = 0 # 0 for Left, 1 for Right
+        
+        # Generate our spatialized sounds
+        self.tick_l = self.generate_spatial_tick(pan=-0.6)
+        self.tick_r = self.generate_spatial_tick(pan=0.6)
+        self.rescue_beat = self.generate_spatial_tick(pan=0, frequency=800, duration=0.1)
+
+    def generate_spatial_tick(self, pan=0.0, frequency=1200, duration=0.03):
+        """Creates a 'Forward-projected' sound using Interaural Time Difference (ITD)."""
+        n_samples = int(SAMPLE_RATE * duration)
+        t = np.linspace(0, duration, n_samples, False)
+        # Simple sine wave with an exponential decay envelope
+        wave = np.sin(2 * np.pi * frequency * t) * np.exp(-150 * t)
+        
+        # THE MAGIC: ITD (Delaying one ear by ~0.2ms to trick the brain)
+        delay_sec = 0.0003 # 0.3ms delay
+        delay_samples = int(delay_sec * SAMPLE_RATE)
+        
+        stereo_wave = np.zeros((n_samples + delay_samples, 2), dtype=np.float32)
+        
+        # Equal power panning
+        left_gain = np.cos((pan + 1) * np.pi / 4)
+        right_gain = np.sin((pan + 1) * np.pi / 4)
+
+        if pan <= 0: # Sound on Left, delay Right ear
+            stereo_wave[:n_samples, 0] = wave * left_gain
+            stereo_wave[delay_samples:, 1] = wave * right_gain
+        else: # Sound on Right, delay Left ear
+            stereo_wave[delay_samples:, 0] = wave * left_gain
+            stereo_wave[:n_samples, 1] = wave * right_gain
+
+        # Normalize and convert to 16-bit PCM
+        stereo_wave = (stereo_wave * 32767).astype(np.int16)
+        return sndarray.make_sound(np.ascontiguousarray(stereo_wave))
+
+    def process_gait(self):
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.bind(("0.0.0.0", UDP_PORT))
+        print(f"Listening on port {UDP_PORT}...")
+
+        while True:
+            data, _ = sock.recvfrom(1024)
+            try:
+                # Basic parser for multiple phone apps
+                msg = data.decode('utf-8')
+                val = float(msg.split(',')[-1]) # Assumes Z is last or single value
+                self.accel_buffer.append(val)
+
+                if len(self.accel_buffer) < 15: continue
+                
+                # VARIANCE DETECTION (Better for Parkinsonian Shuffling)
+                variance = np.var(self.accel_buffer)
+                now = time.time()
+                
+                if variance > VAR_THRESHOLD and (now - self.last_step_time) > MIN_STEP_INTERVAL:
+                    interval = now - self.last_step_time
+                    self.last_step_time = now
+                    self.step_times.append(interval)
+                    
+                    if len(self.step_times) >= 2:
+                        self.current_bpm = 60 / np.mean(self.step_times)
+                    
+                    print(f"Step! BPM: {self.current_bpm:.1f} | Var: {variance:.2f}")
+
+                # FREEZE DETECTION
+                self.is_frozen = (now - self.last_step_time) > FREEZE_TIME
+
+            except: continue
+
+    def metronome_loop(self):
+        while True:
+            if self.is_frozen:
+                print("!!! FREEZE !!!")
+                self.rescue_beat.play()
+                time.sleep(0.3) # Fast rescue pulse
+            else:
+                # Lead the user by 10%
+                target_bpm = min(self.current_bpm * 1.10, 160)
+                interval = 60 / target_bpm
+                
+                # Alternate ears
+                if self.side == 0:
+                    self.tick_l.play()
+                    self.side = 1
+                else:
+                    self.tick_r.play()
+                    self.side = 0
+                
+                time.sleep(interval)
+
+if __name__ == "__main__":
+    app = SyncStride()
+    threading.Thread(target=app.process_gait, daemon=True).start()
+    app.metronome_loop()

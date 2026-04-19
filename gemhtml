@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SyncStride Adaptive</title>
+    <style>
+        body { font-family: -apple-system, sans-serif; text-align: center; background: #0f172a; color: #f8faff; padding: 20px; }
+        #bpm-card { background: #1e293b; border-radius: 20px; padding: 30px; margin: 20px auto; max-width: 300px; box-shadow: 0 10px 15px rgba(0,0,0,0.3); }
+        #bpm { font-size: 5em; font-weight: 800; color: #8b5cf6; margin: 0; }
+        #status { font-size: 1.2em; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin: 20px; color: #10b981; }
+        button { padding: 20px 50px; font-size: 1.3em; border-radius: 50px; border: none; background: #8b5cf6; color: white; font-weight: bold; box-shadow: 0 4px 14px 0 rgba(139, 92, 246, 0.39); cursor: pointer; }
+        .freeze { color: #ef4444 !important; animation: pulse 0.5s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+    </style>
+</head>
+<body>
+    <h1>SyncStride</h1>
+    
+    <div id="bpm-card">
+        <p id="bpm">--</p>
+        <p style="margin:0; color:#94a3b8">CADENCE (BPM)</p>
+    </div>
+
+    <div id="status">Ready to Calibrate</div>
+    <button id="startBtn">START THERAPY</button>
+
+    <script>
+        let audioCtx, lastStepTime = 0, currentBPM = 90;
+        let side = 0; 
+        let isRunning = false;
+
+        const startBtn = document.getElementById('startBtn');
+        const bpmDisplay = document.getElementById('bpm');
+        const statusDisplay = document.getElementById('status');
+
+        startBtn.onclick = async () => {
+            if (typeof DeviceMotionEvent.requestPermission === 'function') {
+                const res = await DeviceMotionEvent.requestPermission();
+                if (res !== 'granted') return alert("Need motion permissions!");
+            }
+
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            isRunning = true;
+            startBtn.style.display = 'none';
+            statusDisplay.innerText = "Walk to Sync...";
+            
+            window.addEventListener('devicemotion', (e) => {
+                const acc = e.acceleration;
+                // Magnitude of the "thump"
+                const mag = Math.sqrt(acc.x**2 + acc.y**2 + acc.z**2);
+                const now = Date.now();
+
+                // 1. Adaptive Step Detection
+                if (mag > 2.5 && (now - lastStepTime) > 400) { 
+                    if (lastStepTime > 0) {
+                        const interval = now - lastStepTime;
+                        // Calculate BPM and lead the user by 10%
+                        currentBPM = (60000 / interval) * 1.10;
+                        bpmDisplay.innerText = Math.round(currentBPM / 1.10);
+                    }
+                    lastStepTime = now;
+                    statusDisplay.innerText = "Gait Synced";
+                    statusDisplay.classList.remove('freeze');
+                }
+            });
+
+            // Start the recursive scheduler
+            scheduleNextBeat();
+        };
+
+        function scheduleNextBeat() {
+            if (!isRunning) return;
+
+            const now = Date.now();
+            const timeSinceLastStep = now - lastStepTime;
+            let nextInterval = 60000 / currentBPM;
+
+            // 2. Freeze Detection (Stop Logic)
+            if (lastStepTime > 0 && timeSinceLastStep > 2500) {
+                statusDisplay.innerText = "FREEZE DETECTED";
+                statusDisplay.classList.add('freeze');
+                
+                // Play a sharper "Rescue" beat in the center
+                playTick(0, 1500, 0.15); 
+                nextInterval = 400; // Fast emergency pulse
+            } else {
+                // Normal Adaptive Beat
+                playTick(side === 0 ? -0.8 : 0.8, 1000, 0.08);
+                side = 1 - side;
+            }
+
+            // The recursion happens here: it calculates the next beat 
+            // ONLY after this one plays, using the most recent BPM data.
+            setTimeout(scheduleNextBeat, nextInterval);
+        }
+
+        function playTick(panValue, freq, dur) {
+            const osc = audioCtx.createOscillator();
+            const panner = audioCtx.createStereoPanner();
+            const gain = audioCtx.createGain();
+
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            panner.pan.setValueAtTime(panValue, audioCtx.currentTime);
+            
+            gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + dur);
+
+            osc.connect(panner).connect(gain).connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + dur);
+        }
+    </script>
+</body>
+</html>

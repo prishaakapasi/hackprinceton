@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ParkiStep Web</title>
+    <style>
+        :root { --bg: #0f172a; --card: #1e293b; --primary: #8b5cf6; --accent: #10b981; --danger: #ef4444; --text: #f8fafc; }
+        body { background: var(--bg); color: var(--text); font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; overflow: hidden; }
+        .status-card { background: var(--card); padding: 2rem; border-radius: 24px; text-align: center; width: 80%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
+        #bpm-display { font-size: 5rem; font-weight: 800; margin: 0; color: var(--primary); }
+        .btn { background: var(--primary); color: white; border: none; padding: 1.2rem 2.5rem; font-size: 1.2rem; font-weight: bold; border-radius: 50px; cursor: pointer; margin-top: 2rem; }
+        .frozen { border: 3px solid var(--danger); animation: pulse 1s infinite; }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); } 70% { box-shadow: 0 0 0 20px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
+    </style>
+</head>
+<body>
+
+    <div id="main-card" class="status-card">
+        <h1 style="margin-top:0">ParkiStep</h1>
+        <p id="bpm-display">--</p>
+        <p id="status-text" style="color:var(--accent)">READY</p>
+        <div id="debug" style="font-size:0.8rem; opacity:0.5">Ratio: 0.0</div>
+    </div>
+
+    <button id="startBtn" class="btn">START SENSORS</button>
+
+    <script>
+        // --- CONSTANTS FROM YOUR PYTHON SCRIPT ---
+        const SENSITIVITY = 1.8;
+        const STEP_LEAD = 1.10;
+        const FREEZE_THRESHOLD = 2500; // 2.5 seconds
+        const FAST_WIN_SIZE = 5;
+        const SLOW_WIN_SIZE = 30;
+
+        let audioCtx, lastStepTime = 0, currentBPM = 80;
+        let fastWin = [], slowWin = [];
+        let side = 0, isRunning = false;
+
+        const startBtn = document.getElementById('startBtn');
+        const mainCard = document.getElementById('main-card');
+        const statusText = document.getElementById('status-text');
+
+        startBtn.onclick = async () => {
+            // iOS Permission Request
+            if (typeof DeviceMotionEvent.requestPermission === 'function') {
+                const res = await DeviceMotionEvent.requestPermission();
+                if (res !== 'granted') return alert("Need motion access!");
+            }
+            
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            isRunning = true;
+            startBtn.style.display = 'none';
+            window.addEventListener('devicemotion', handleMotion);
+            scheduleNextBeat();
+        };
+
+        function handleMotion(e) {
+            const acc = e.acceleration;
+            const mag = Math.sqrt(acc.x**2 + acc.y**2 + acc.z**2);
+
+            // 1. Dual-Average Logic (The "StepDetector" class)
+            fastWin.push(mag);
+            if (fastWin.length > FAST_WIN_SIZE) fastWin.shift();
+            slowWin.push(mag);
+            if (slowWin.length > SLOW_WIN_SIZE) slowWin.shift();
+
+            if (slowWin.length < SLOW_WIN_SIZE) return;
+
+            const fastAvg = fastWin.reduce((a, b) => a + b) / FAST_WIN_SIZE;
+            const slowAvg = slowWin.reduce((a, b) => a + b) / SLOW_WIN_SIZE;
+            const ratio = fastAvg / (slowAvg + 0.001);
+            document.getElementById('debug').innerText = `Ratio: ${ratio.toFixed(2)}`;
+
+            const now = Date.now();
+            // 2. Threshold Detection
+            if (ratio > SENSITIVITY && (now - lastStepTime) > 350) {
+                if (lastStepTime > 0) {
+                    const interval = now - lastStepTime;
+                    currentBPM = (60000 / interval) * STEP_LEAD; // Adaptive BPM + 10%
+                    document.getElementById('bpm-display').innerText = Math.round(currentBPM / STEP_LEAD);
+                }
+                lastStepTime = now;
+                mainCard.classList.remove('frozen');
+                statusText.innerText = "WALKING";
+            }
+        }
+
+        function scheduleNextBeat() {
+            if (!isRunning) return;
+
+            const now = Date.now();
+            const timeSinceLast = now - lastStepTime;
+            let nextInterval;
+
+            // 3. Freeze Detection (The "Metronome" class)
+            if (lastStepTime > 0 && timeSinceLast > FREEZE_THRESHOLD) {
+                statusText.innerText = "FREEZE DETECTED";
+                mainCard.classList.add('frozen');
+                playClick(0, 1400); // Rescue beat (High pitch)
+                nextInterval = 400; // Fast rescue cadence
+            } else {
+                // Alternating Stereo Pan
+                playClick(side === 0 ? -0.6 : 0.6, 800);
+                side = 1 - side;
+                nextInterval = 60000 / Math.min(Math.max(currentBPM, 40), 160);
+            }
+
+            setTimeout(scheduleNextBeat, nextInterval);
+        }
+
+        function playClick(pan, freq) {
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const panner = audioCtx.createStereoPanner();
+            const gain = audioCtx.createGain();
+
+            osc.frequency.setValueAtTime(freq, now);
+            panner.pan.setValueAtTime(pan, now);
+            gain.gain.setValueAtTime(0.4, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+
+            osc.connect(panner).connect(gain).connect(audioCtx.destination);
+            osc.start();
+            osc.stop(now + 0.1);
+        }
+    </script>
+</body>
+</html>
