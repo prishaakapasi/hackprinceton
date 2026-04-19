@@ -1,9 +1,4 @@
-<<<<<<< HEAD
-
-import { useEffect, useState } from "react";
-=======
 import React, { useEffect, useRef, useState } from "react";
->>>>>>> 340801e6 (Sound player and step detector)
 import "./EeshaWalkComponent.css";
 
 // ── Constants ─────────────────────────────────────────────────────────────────

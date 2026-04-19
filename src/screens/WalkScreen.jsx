@@ -6,19 +6,11 @@ import "../styles/circles.css";
 import "./WalkScreen.css";
 
 export default function WalkScreen() {
-<<<<<<< HEAD
-  const [walking,  setWalking]  = useState(false);
-  const [cadence,  setCadence]  = useState("medium");
-  const [expanded, setExpanded] = useState(false);
-  const [settings, setSettings] = useState(false);
-
-  return (
-    <div className="walk-screen">
-
-=======
   const [walking,   setWalking]   = useState(false);
   const [audioCtx,  setAudioCtx]  = useState(null);
   const [soundType, setSoundType] = useState("tick");
+  const [expanded, setExpanded]   = useState(false);
+  const [settings, setSettings]   = useState(false);
 
   // AudioContext MUST be created synchronously inside a click handler —
   // browsers auto-suspend it if created anywhere else (e.g. useEffect).
@@ -46,13 +38,11 @@ export default function WalkScreen() {
 
   return (
     <div className="walk-screen">
->>>>>>> 340801e6 (Sound player and step detector)
       <div className="circle circle-a" />
       <div className="circle circle-b" />
 
       <div className="walk-header">
         <div className="logo">synova</div>
-<<<<<<< HEAD
 
         <div className="top-bar-right">
           <button className="top-icon-btn" onClick={() => setExpanded(!expanded)} aria-label={expanded ? "Collapse" : "Expand"}>
@@ -80,15 +70,6 @@ export default function WalkScreen() {
         </div>
       </div>
 
-      {walking ? (
-        <EeshaWalkComponent cadence={cadence} onStop={() => setWalking(false)} />
-      ) : (
-        <div className={`walk-setup ${expanded ? "walk-setup--expanded" : ""}`}>
-          <div className="walk-cue">Set your pace, then start walking.</div>
-=======
-        <div className="walk-title">ParkiStep</div>
-      </div>
-
       {walking && audioCtx ? (
         <EeshaWalkComponent
           audioCtx={audioCtx}
@@ -102,7 +83,6 @@ export default function WalkScreen() {
           </div>
 
           <div className="walk-cue">Select sound, then start sensors.</div>
->>>>>>> 340801e6 (Sound player and step detector)
 
           <div className="cadence-wrap">
             <div className="cadence-label">Sound Profile</div>
@@ -119,24 +99,16 @@ export default function WalkScreen() {
             </div>
           </div>
 
-<<<<<<< HEAD
-          <button className="walk-start-btn" onClick={() => setWalking(true)}>
-            Start Walking
-=======
           <button className="walk-start-btn" onClick={handleStart}>
             START SENSORS
->>>>>>> 340801e6 (Sound player and step detector)
           </button>
         </div>
       )}
 
       {!walking && <NavBar />}
-<<<<<<< HEAD
 
       {settings && <SettingsSheet onClose={() => setSettings(false)} />}
 
-=======
->>>>>>> 340801e6 (Sound player and step detector)
     </div>
   );
 }
