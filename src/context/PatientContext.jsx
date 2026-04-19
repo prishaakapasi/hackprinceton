@@ -1,26 +1,25 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
+import { getPhrases } from "../api";
+
+const DEFAULT_PHRASES = [
+  "I need water",
+  "I need help",
+  "I am okay",
+  "Please wait",
+  "Call my daughter",
+  "I need to sit down",
+];
 
 const PatientContext = createContext(null);
 
 export function PatientProvider({ children }) {
-  const savedName  = localStorage.getItem("synova-name")  || "";
+  const savedName = localStorage.getItem("synova-name") || "";
   const savedTheme = localStorage.getItem("synova-theme") || "dark";
 
-  const [name, setName]       = useState(savedName);
-  const [medOn, setMedOn]     = useState(true);
-  const [theme, setTheme]     = useState(savedTheme);
-  const [phrases, setPhrases] = useState([
-    "I need water",
-    "I'm in pain",
-    "Call my daughter",
-    "I'm tired",
-    "Thank you",
-    "Yes",
-    "No",
-    "I need my medication",
-    "I'd like to go outside",
-    "Good morning",
-  ]);
+  const [name, setName] = useState(savedName);
+  const [medOn, setMedOn] = useState(true);
+  const [theme, setTheme] = useState(savedTheme);
+  const [phrases, setPhrases] = useState(DEFAULT_PHRASES);
   const [voiceProfile, setVoiceProfile] = useState({
     saved: false,
     phraseCount: 0,
@@ -32,10 +31,28 @@ export function PatientProvider({ children }) {
     localStorage.setItem("synova-theme", theme);
   }, [theme]);
 
-  const toggleTheme = () => setTheme(t => t === "dark" ? "light" : "dark");
+  useEffect(() => {
+    async function loadBackendPhrases() {
+      try {
+        const data = await getPhrases();
+        if (Array.isArray(data.phrases) && data.phrases.length > 0) {
+          setPhrases(data.phrases);
+        }
+      } catch (err) {
+        console.error("failed to load phrases", err);
+      }
+    }
 
-  const addPhrase    = (p) => setPhrases(prev => [...prev, p]);
-  const removePhrase = (p) => setPhrases(prev => prev.filter(x => x !== p));
+    loadBackendPhrases();
+  }, []);
+
+  const toggleTheme = () => setTheme((t) => (t === "dark" ? "light" : "dark"));
+
+  const addPhrase = (p) =>
+    setPhrases((prev) => (prev.includes(p) ? prev : [...prev, p]));
+
+  const removePhrase = (p) =>
+    setPhrases((prev) => prev.filter((x) => x !== p));
 
   const logout = () => {
     localStorage.removeItem("synova-name");
@@ -43,30 +60,28 @@ export function PatientProvider({ children }) {
     setName("");
     setTheme("dark");
     setMedOn(true);
-    setPhrases([
-      "I need water",
-      "I'm in pain",
-      "Call my daughter",
-      "I'm tired",
-      "Thank you",
-      "Yes",
-      "No",
-      "I need my medication",
-      "I'd like to go outside",
-      "Good morning",
-    ]);
+    setPhrases(DEFAULT_PHRASES);
     setVoiceProfile({ saved: false, phraseCount: 0, elevenLabsId: null });
   };
 
   return (
-    <PatientContext.Provider value={{
-      name, setName,
-      medOn, setMedOn,
-      theme, toggleTheme,
-      phrases, addPhrase, removePhrase,
-      voiceProfile, setVoiceProfile,
-      logout,
-    }}>
+    <PatientContext.Provider
+      value={{
+        name,
+        setName,
+        medOn,
+        setMedOn,
+        theme,
+        toggleTheme,
+        phrases,
+        setPhrases,
+        addPhrase,
+        removePhrase,
+        voiceProfile,
+        setVoiceProfile,
+        logout,
+      }}
+    >
       {children}
     </PatientContext.Provider>
   );

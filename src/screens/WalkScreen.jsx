@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import EeshaWalkComponent from "../components/EeshaWalkComponent";
 import NavBar from "../components/NavBar";
-import SettingsSheet from "../components/SettingsSheet";
+import SettingsSheet from "../components/SettingsSheet";1
 import "../styles/circles.css";
 import "./WalkScreen.css";
 
@@ -77,7 +77,7 @@ export default function WalkScreen() {
           onStop={handleStop}
         />
       ) : (
-        <div className="walk-setup">
+        <div className={`walk-setup ${expanded ? "walk-setup--expanded" : ""}`}>
           <div className="walk-icon-wrap">
             <div className="pulse-ring" />
           </div>

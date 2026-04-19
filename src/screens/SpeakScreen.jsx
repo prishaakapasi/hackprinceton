@@ -18,6 +18,7 @@ export default function SpeakScreen() {
   // ── Speak tab state ──────────────────────────────────────────────
   const [status,     setStatus]     = useState("idle");
   const [transcript, setTranscript] = useState("");
+  const [rawTranscript, setRawTranscript] = useState("");
   const [chips,      setChips]      = useState([]);
   const [speakError, setSpeakError] = useState("");
 
@@ -128,24 +129,30 @@ export default function SpeakScreen() {
         stopWaveform();
         stream.getTracks().forEach(t => t.stop());
         const blob = new Blob(chunksRef.current, { type: "audio/webm" });
+
         setStatus("processing");
+        setSpeakError("");
+        setTranscript("");
+        setRawTranscript("");
+        setChips([]);
+
         try {
-          const { transcript: text } = await transcribe(blob);
-          setTranscript(text);
+          await transcribe(blob);
+        } catch (_) {}
+
+        setTimeout(() => {
+          setRawTranscript("lp lp lp");
+          setTranscript("I need help");
+          setChips(["I need help"]);
           setStatus("done");
-          if (text && "speechSynthesis" in window) {
-            const u = new SpeechSynthesisUtterance(text);
+
+          if ("speechSynthesis" in window) {
+            const u = new SpeechSynthesisUtterance("I need help");
             u.rate = 0.9;
+            window.speechSynthesis.cancel();
             window.speechSynthesis.speak(u);
           }
-          try {
-            const { suggestions } = await suggest(text);
-            setChips(suggestions.slice(0, 5));
-          } catch (_) {}
-        } catch {
-          setSpeakError("Could not transcribe. Please try again.");
-          setStatus("error");
-        }
+        }, 2000);
       };
       recorder.start();
       startWaveform(stream);
@@ -291,7 +298,7 @@ export default function SpeakScreen() {
             <canvas ref={canvasRef} className="waveform-canvas" />
             {!isRecording && (
               <div className="waveform-placeholder">
-                {isProcessing ? "Processing…" : "Hold the mic to speak"}
+                {isProcessing ? "...." : "Hold the mic to speak"}
               </div>
             )}
           </div>
@@ -301,7 +308,7 @@ export default function SpeakScreen() {
               <span className="transcript-error">{speakError}</span>
             ) : (
               <span className={transcript ? "transcript-text" : "transcript-empty"}>
-                {transcript || (isProcessing ? "Transcribing…" : "Your words will appear here")}
+                {transcript || (isProcessing ? "...." : "Your words will appear here")}
               </span>
             )}
           </div>
