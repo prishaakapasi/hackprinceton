@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { usePatient } from "../context/PatientContext";
 import { transcribe, suggest, savePhrase } from "../api";
 import NavBar from "../components/NavBar";
+import SettingsSheet from "../components/SettingsSheet";
 import "../styles/circles.css";
 import "./SpeakScreen.css";
 
@@ -10,7 +11,9 @@ const BAR_GAP  = 0.35;
 
 export default function SpeakScreen() {
   const { phrases } = usePatient();
-  const [tab, setTab] = useState("speak"); // "speak" | "bank"
+  const [tab,      setTab]      = useState("speak"); // "speak" | "bank"
+  const [expanded, setExpanded] = useState(false);
+  const [settings, setSettings] = useState(false);
 
   // ── Speak tab state ──────────────────────────────────────────────
   const [status,     setStatus]     = useState("idle");
@@ -238,27 +241,53 @@ export default function SpeakScreen() {
       <div className="speak-header">
         <div className="logo">synova</div>
 
-        {/* Tab toggle */}
-        <div className="speak-tab-toggle">
-          <button
-            className={`speak-tab-btn ${tab === "speak" ? "speak-tab-btn--active" : ""}`}
-            onClick={() => setTab("speak")}
-          >
-            Speak
-          </button>
-          <button
-            className={`speak-tab-btn ${tab === "bank" ? "speak-tab-btn--active" : ""}`}
-            onClick={() => setTab("bank")}
-          >
-            Voice Bank
-          </button>
+        <div className="speak-header-right">
+          <div className="speak-tab-toggle">
+            <button
+              className={`speak-tab-btn ${tab === "speak" ? "speak-tab-btn--active" : ""}`}
+              onClick={() => setTab("speak")}
+            >
+              Speak
+            </button>
+            <button
+              className={`speak-tab-btn ${tab === "bank" ? "speak-tab-btn--active" : ""}`}
+              onClick={() => setTab("bank")}
+            >
+              Voice Bank
+            </button>
+          </div>
+
+          <div className="top-bar-right">
+            <button className="top-icon-btn" onClick={() => setExpanded(!expanded)} aria-label={expanded ? "Collapse" : "Expand"}>
+              <svg width="20" height="20" viewBox="0 0 16 16" fill="none">
+                {expanded ? (
+                  <>
+                    <path d="M6 1H1V6"    stroke="var(--accent)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M10 15H15V10" stroke="var(--accent)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+                  </>
+                ) : (
+                  <>
+                    <path d="M1 6V1H6"    stroke="var(--accent)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M15 10V15H10" stroke="var(--accent)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+                  </>
+                )}
+              </svg>
+            </button>
+
+            <button className="top-icon-btn" onClick={() => setSettings(true)} aria-label="Settings">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
 
       {/* ── SPEAK TAB ─────────────────────────────────────────────── */}
       {tab === "speak" && (
         <>
-          <div className={`waveform-wrap ${isRecording ? "waveform-wrap--active" : ""}`}>
+          <div className={`waveform-wrap ${isRecording ? "waveform-wrap--active" : ""} ${expanded ? "waveform-wrap--expanded" : ""}`}>
             <canvas ref={canvasRef} className="waveform-canvas" />
             {!isRecording && (
               <div className="waveform-placeholder">
@@ -384,6 +413,8 @@ export default function SpeakScreen() {
       )}
 
       <NavBar />
+
+      {settings && <SettingsSheet onClose={() => setSettings(false)} />}
 
     </div>
   );

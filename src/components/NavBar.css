@@ -3,8 +3,12 @@
   background: var(--navbar-bg);
   border-top: 1px solid rgba(var(--accent-rgb), 0.12);
   padding: 10px 0 32px; /* 32px bottom clears home-indicator on iOS */
-  z-index: 10;
+  z-index: 50;
   flex-shrink: 0;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
 }
 
 .navbar-btn {
@@ -21,7 +25,7 @@
   /* Large touch target for tremor tolerance */
   min-height: 72px;
   transition: transform 0.15s ease, opacity 0.15s ease;
-  opacity: 0.42;
+  opacity: 0.65;
 }
 
 .navbar-btn--active {

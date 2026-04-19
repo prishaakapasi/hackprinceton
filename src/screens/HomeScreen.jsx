@@ -2,6 +2,7 @@ import { useState } from "react";
 import { usePatient } from "../context/PatientContext";
 import DwellButton from "../components/DwellButton";
 import NavBar from "../components/NavBar";
+import SettingsSheet from "../components/SettingsSheet";
 import "../styles/circles.css";
 import "./HomeScreen.css";
 
@@ -15,9 +16,10 @@ const PHRASES = [
 ];
 
 export default function HomeScreen() {
-  const { name, medOn, setMedOn, theme, toggleTheme } = usePatient();
-  const [spoken, setSpoken] = useState("");
+  const { name, medOn } = usePatient();
+  const [spoken,   setSpoken]   = useState("");
   const [expanded, setExpanded] = useState(false);
+  const [settings, setSettings] = useState(false);
 
   const speak = (phrase) => {
     setSpoken(phrase);
@@ -40,42 +42,38 @@ export default function HomeScreen() {
       <div className="top-bar">
         <div>
           <div className="logo">synova</div>
-          <div className="greeting">{name ? `Hi, ${name}` : "Welcome"}</div>
         </div>
 
         <div className="top-bar-right">
-          <button className="theme-toggle-btn" onClick={toggleTheme} aria-label="Toggle theme">
-            {theme === "dark" ? (
-              /* Sun icon */
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round">
-                <circle cx="12" cy="12" r="5" fill="var(--accent)" stroke="none"/>
-                <line x1="12" y1="2"  x2="12" y2="5" />
-                <line x1="12" y1="19" x2="12" y2="22"/>
-                <line x1="2"  y1="12" x2="5"  y2="12"/>
-                <line x1="19" y1="12" x2="22" y2="12"/>
-                <line x1="4.22"  y1="4.22"  x2="6.34"  y2="6.34" />
-                <line x1="17.66" y1="17.66" x2="19.78" y2="19.78"/>
-                <line x1="4.22"  y1="19.78" x2="6.34"  y2="17.66"/>
-                <line x1="17.66" y1="6.34"  x2="19.78" y2="4.22" />
-              </svg>
-            ) : (
-              /* Moon icon */
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="var(--accent)">
-                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-              </svg>
-            )}
+          {/* Expand / collapse */}
+          <button className="top-icon-btn" onClick={() => setExpanded(!expanded)} aria-label={expanded ? "Collapse" : "Expand"}>
+            <svg width="20" height="20" viewBox="0 0 16 16" fill="none">
+              {expanded ? (
+                <>
+                  <path d="M6 1H1V6"   stroke="var(--accent)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M10 15H15V10" stroke="var(--accent)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+                </>
+              ) : (
+                <>
+                  <path d="M1 6V1H6"   stroke="var(--accent)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M15 10V15H10" stroke="var(--accent)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+                </>
+              )}
+            </svg>
           </button>
-          <div className="med-toggle-row">
-            <span className="med-label">{medOn ? "Med on" : "Med off"}</span>
-            <div
-              onClick={() => setMedOn(!medOn)}
-              className={`med-track ${medOn ? "med-track--on" : "med-track--off"}`}
-            >
-              <div className="med-thumb" style={{ left: medOn ? 23 : 3 }} />
-            </div>
-          </div>
+
+          {/* Settings */}
+          <button className="top-icon-btn" onClick={() => setSettings(true)} aria-label="Settings">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+            </svg>
+          </button>
         </div>
       </div>
+
+      {/* Welcome heading */}
+      <div className="welcome-heading">{name ? `welcome ${name.toLowerCase()}` : "welcome"}</div>
 
       {/* Output box */}
       <div className="output-box-wrap">
@@ -107,28 +105,11 @@ export default function HomeScreen() {
             />
           ))}
         </div>
-
-        <div className={`expand-toggle-row ${expanded ? "expand-toggle-row--expanded" : "expand-toggle-row--normal"}`}>
-          <button className="expand-btn" onClick={() => setExpanded(!expanded)}>
-            {expanded ? "Collapse" : "Expand"}
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              {expanded ? (
-                <>
-                  <path d="M6 1H1V6" stroke="var(--accent)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M10 15H15V10" stroke="var(--accent)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </>
-              ) : (
-                <>
-                  <path d="M1 6V1H6" stroke="var(--accent)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M15 10V15H10" stroke="var(--accent)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </>
-              )}
-            </svg>
-          </button>
-        </div>
       </div>
 
-      {!expanded && <NavBar />}
+      <NavBar />
+
+      {settings && <SettingsSheet onClose={() => setSettings(false)} />}
 
     </div>
   );

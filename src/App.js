@@ -13,12 +13,13 @@ function App() {
         <Routes>
           <Route path="/welcome"    element={<LoginScreen />} />
           <Route path="/signup"     element={<SignUpScreen />} />
-          <Route path="/"           element={<HomeScreen />} />
+          <Route path="/home"       element={<HomeScreen />} />
           <Route path="/speak"      element={<SpeakScreen />} />
           <Route path="/walk"       element={<WalkScreen />} />
-          <Route path="/banking"    element={<Navigate to="/speak" />} />
-          <Route path="/login-form" element={<Navigate to="/" />} />
-          <Route path="*"           element={<Navigate to="/welcome" />} />
+          <Route path="/banking"    element={<Navigate to="/speak" replace />} />
+          <Route path="/login-form" element={<Navigate to="/home" replace />} />
+          <Route path="/"           element={<Navigate to="/welcome" replace />} />
+          <Route path="*"           element={<Navigate to="/welcome" replace />} />
         </Routes>
       </BrowserRouter>
     </PatientProvider>

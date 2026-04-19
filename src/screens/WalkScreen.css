@@ -4,7 +4,8 @@
   display: flex;
   flex-direction: column;
   position: relative;
-  overflow: hidden;
+  overflow-x: hidden;
+  padding-bottom: 114px;
 }
 
 .walk-header {
@@ -20,7 +21,7 @@
   font-size: 15px;
   font-weight: 600;
   color: var(--accent);
-  opacity: 0.55;
+  opacity: 0.78;
   letter-spacing: 2px;
   text-transform: uppercase;
 }
@@ -35,6 +36,26 @@
   gap: 32px;
   padding: 24px 32px;
   z-index: 1;
+  transition: padding 0.3s ease, gap 0.3s ease;
+}
+
+.walk-setup--expanded {
+  padding: 8px 20px;
+  gap: 48px;
+}
+
+.walk-setup--expanded .walk-cue {
+  font-size: 32px;
+}
+
+.walk-setup--expanded .cadence-btn {
+  padding: 26px 8px;
+  font-size: 18px;
+}
+
+.walk-setup--expanded .walk-start-btn {
+  padding: 32px;
+  font-size: 26px;
 }
 
 .walk-icon-wrap {
@@ -42,10 +63,10 @@
 }
 
 .walk-cue {
-  font-family: 'Krub', sans-serif;
-  font-size: 17px;
+  font-family: 'Lemon', sans-serif;
+  font-size: 25px;
   color: var(--accent);
-  opacity: 0.6;
+  opacity: 0.82;
   text-align: center;
 }
 
@@ -66,7 +87,7 @@
   letter-spacing: 2px;
   text-transform: uppercase;
   color: var(--accent);
-  opacity: 0.45;
+  opacity: 0.75;
 }
 
 .cadence-picker {
@@ -132,3 +153,4 @@
 .walk-start-btn:active {
   transform: scale(0.97);
 }
+

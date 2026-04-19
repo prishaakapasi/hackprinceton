@@ -17,7 +17,7 @@ export default function SignUpScreen() {
     }
     setName(input.trim());
     localStorage.setItem("synova-name", input.trim());
-    navigate("/");
+    navigate("/home");
   };
 
   return (
@@ -30,7 +30,7 @@ export default function SignUpScreen() {
       <div className="circle circle-d" />
 
       {/* Back button */}
-      <button className="back-btn" onClick={() => navigate("/")}>
+      <button className="back-btn" onClick={() => navigate("/welcome")}>
         ← Back
       </button>
 

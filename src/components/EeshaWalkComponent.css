@@ -20,7 +20,7 @@
   font-weight: 700;
   letter-spacing: 3px;
   color: var(--accent);
-  opacity: 0.55;
+  opacity: 0.78;
   text-transform: uppercase;
 }
 
@@ -49,7 +49,7 @@
   letter-spacing: 2px;
   text-transform: uppercase;
   color: var(--accent);
-  opacity: 0.45;
+  opacity: 0.75;
 }
 
 /* Metronome pulse */
