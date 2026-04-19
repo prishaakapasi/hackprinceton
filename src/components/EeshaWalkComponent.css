@@ -7,6 +7,7 @@
   gap: 36px;
   padding: 32px 24px;
   animation: fadeIn 0.3s ease;
+  transition: background 0.4s ease;
 }
 
 @keyframes fadeIn {
@@ -14,75 +15,135 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 
-.eesha-cadence-badge {
+/* ── Status label ─────────────────────────────────────────────────── */
+
+.eesha-status {
   font-family: 'Krub', sans-serif;
   font-size: 13px;
   font-weight: 700;
-  letter-spacing: 3px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
   color: var(--accent);
+<<<<<<< HEAD
   opacity: 0.78;
   text-transform: uppercase;
+=======
+  opacity: 0.55;
+  transition: color 0.3s ease, opacity 0.3s ease;
+>>>>>>> 340801e6 (Sound player and step detector)
 }
+
+.eesha-frozen .eesha-status {
+  color: var(--danger);
+  opacity: 1;
+  animation: blink 0.8s ease infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+/* ── BPM number ───────────────────────────────────────────────────── */
+
+.eesha-bpm-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.eesha-bpm-number {
+  font-family: 'Lemon', cursive;
+  font-size: 108px;
+  line-height: 1;
+  color: var(--accent);
+  transition: color 0.3s ease;
+}
+
+.eesha-frozen .eesha-bpm-number {
+  color: var(--danger);
+}
+
+.eesha-bpm-unit {
+  font-family: 'Krub', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--accent);
+  opacity: 0.4;
+}
+
+/* ── Stat row ─────────────────────────────────────────────────────── */
 
 .eesha-stat-row {
   display: flex;
-  gap: 32px;
+  align-items: center;
+  gap: 28px;
 }
 
 .eesha-stat {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
 }
 
 .eesha-stat-value {
   font-family: 'Lemon', cursive;
-  font-size: 36px;
+  font-size: 32px;
   color: var(--accent);
 }
 
 .eesha-stat-label {
   font-family: 'Krub', sans-serif;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
   letter-spacing: 2px;
   text-transform: uppercase;
   color: var(--accent);
+<<<<<<< HEAD
   opacity: 0.75;
+=======
+  opacity: 0.4;
+>>>>>>> 340801e6 (Sound player and step detector)
 }
 
-/* Metronome pulse */
-.eesha-pulse {
-  width: 140px;
-  height: 140px;
-  border-radius: 50%;
-  background: rgba(var(--accent-rgb), 0.08);
-  border: 2px solid rgba(var(--accent-rgb), 0.25);
-  animation: pulse linear infinite;
+.eesha-stat-divider {
+  width: 1px;
+  height: 40px;
+  background: rgba(var(--accent-rgb), 0.15);
 }
 
-@keyframes pulse {
-  0%   { transform: scale(0.92); opacity: 0.6; box-shadow: 0 0 0 0   rgba(var(--accent-rgb), 0.3); }
-  50%  { transform: scale(1.06); opacity: 1;   box-shadow: 0 0 0 20px rgba(var(--accent-rgb), 0.0); }
-  100% { transform: scale(0.92); opacity: 0.6; box-shadow: 0 0 0 0   rgba(var(--accent-rgb), 0.3); }
-}
+/* ── Stop button ──────────────────────────────────────────────────── */
 
 .eesha-stop-btn {
   padding: 18px 52px;
   border-radius: 50px;
-  background: rgba(var(--accent-rgb), 0.1);
-  border: 1.5px solid rgba(var(--accent-rgb), 0.35);
+  background: rgba(var(--accent-rgb), 0.08);
+  border: 1.5px solid rgba(var(--accent-rgb), 0.25);
   color: var(--accent);
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 700;
   font-family: 'Krub', sans-serif;
-  letter-spacing: 1.5px;
+  letter-spacing: 2px;
   text-transform: uppercase;
   cursor: pointer;
   transition: background 0.2s ease, transform 0.15s ease;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
 }
 
-.eesha-stop-btn:hover  { background: rgba(var(--accent-rgb), 0.18); transform: scale(1.04); }
+.eesha-stop-btn:hover  { background: rgba(var(--accent-rgb), 0.16); transform: scale(1.03); }
 .eesha-stop-btn:active { transform: scale(0.97); }
+
+/* ── Frozen state background pulse ───────────────────────────────── */
+
+.eesha-frozen {
+  animation: frozenPulse 1s ease infinite;
+}
+
+@keyframes frozenPulse {
+  0%,100% { background: transparent; }
+  50%     { background: rgba(239, 68, 68, 0.07); }
+}
