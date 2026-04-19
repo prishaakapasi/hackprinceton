@@ -75,3 +75,50 @@
   border-radius: 0 0 3px 3px;
   background: var(--accent);
 }
+
+
+.navbar-btn span {
+  color: #ffffff !important;
+}
+
+
+.navbar-btn--active span {
+  color: #ffffff !important;
+}
+
+
+.navbar-btn {
+  color: #ffffff !important;
+}
+
+.navbar-btn--active {
+  color: #ffffff !important;
+}
+
+.navbar-btn,
+.navbar-btn span,
+.navbar-btn--active,
+.navbar-btn--active span {
+  color: #ffffff !important;
+}
+
+.navbar-btn,
+.navbar-btn span,
+.navbar-btn--active,
+.navbar-btn--active span {
+  color: #ffffff !important;
+}
+
+.navbar-btn,
+.navbar-btn span,
+.navbar-btn--active,
+.navbar-btn--active span {
+  color: #ffffff !important;
+}
+
+.navbar-btn,
+.navbar-btn span,
+.navbar-btn--active,
+.navbar-btn--active span {
+  color: #ffffff !important;
+}

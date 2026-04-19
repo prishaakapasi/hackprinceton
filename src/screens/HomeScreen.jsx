@@ -1,116 +1,436 @@
-import { useState } from "react";
-import { usePatient } from "../context/PatientContext";
-import DwellButton from "../components/DwellButton";
-import NavBar from "../components/NavBar";
-import SettingsSheet from "../components/SettingsSheet";
-import "../styles/circles.css";
-import "./HomeScreen.css";
+import React, { useEffect, useRef, useState } from "react";
+import { getPhrases, savePhrase, suggest, transcribe } from "../api";
 
-const PHRASES = [
-  { label: "I need water" },
-  { label: "I'm in pain" },
-  { label: "Call daughter" },
-  { label: "I'm tired" },
-  { label: "Thank you" },
-  { label: "Yes" },
+const NORMALIZATION_RULES = [
+  { tokens: ["help", "hep", "hp", "halp", "home"], output: "I need help" },
+  { tokens: ["water", "waiter", "wadder"], output: "I need water" },
+  { tokens: ["okay", "ok", "fine"], output: "I am okay" },
+  { tokens: ["wait"], output: "Please wait" },
+  { tokens: ["daughter", "call"], output: "Call my daughter" },
+  { tokens: ["sit", "down"], output: "I need to sit down" },
 ];
 
-export default function HomeScreen() {
-  const { name, medOn } = usePatient();
-  const [spoken,   setSpoken]   = useState("");
-  const [expanded, setExpanded] = useState(false);
-  const [settings, setSettings] = useState(false);
+function cleanText(text) {
+  return (text || "")
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
 
-  const speak = (phrase) => {
-    setSpoken(phrase);
-    if ("speechSynthesis" in window) {
-      const u = new SpeechSynthesisUtterance(phrase);
-      u.rate = 0.9;
-      window.speechSynthesis.speak(u);
+function normalizeToPlainEnglish(rawText, phrases, suggestionList) {
+  const cleaned = cleanText(rawText);
+
+  if (!cleaned) return "";
+
+  if (suggestionList && suggestionList.length > 0) {
+    return suggestionList[0];
+  }
+
+  for (const rule of NORMALIZATION_RULES) {
+    if (rule.tokens.some((token) => cleaned.includes(token))) {
+      return rule.output;
     }
-  };
+  }
+
+  let bestPhrase = rawText;
+  let bestScore = 0;
+
+  for (const phrase of phrases) {
+    const phraseClean = cleanText(phrase);
+    let score = 0;
+
+    if (phraseClean.includes(cleaned) && cleaned.length > 1) {
+      score += 8;
+    }
+
+    for (const word of cleaned.split(" ")) {
+      if (!word) continue;
+      if (phraseClean.includes(word)) {
+        score += 2;
+      }
+    }
+
+    if (score > bestScore) {
+      bestScore = score;
+      bestPhrase = phrase;
+    }
+  }
+
+  return bestScore >= 2 ? bestPhrase : rawText;
+}
+
+export default function HomeScreen() {
+  const [tab, setTab] = useState("speak");
+  const [phrases, setPhrases] = useState([]);
+  const [rawTranscript, setRawTranscript] = useState("");
+  const [normalTranscript, setNormalTranscript] = useState("");
+  const [suggestions, setSuggestions] = useState([]);
+  const [status, setStatus] = useState("Hold the mic to speak");
+  const [newPhrase, setNewPhrase] = useState("");
+  const [isRecording, setIsRecording] = useState(false);
+
+  const mediaRecorderRef = useRef(null);
+  const chunksRef = useRef([]);
+  const streamRef = useRef(null);
+
+  useEffect(() => {
+    loadPhrases();
+    return () => stopTracks();
+  }, []);
+
+  async function loadPhrases() {
+    try {
+      const data = await getPhrases();
+      setPhrases(data.phrases || []);
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  function stopTracks() {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
+  }
+
+  async function startRecording() {
+    if (isRecording) return;
+
+    try {
+      setIsRecording(true);
+      setStatus("Listening...");
+      chunksRef.current = [];
+
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
+
+      const recorder = new MediaRecorder(stream, { mimeType: "audio/webm" });
+      mediaRecorderRef.current = recorder;
+
+      recorder.ondataavailable = (event) => {
+        if (event.data && event.data.size > 0) {
+          chunksRef.current.push(event.data);
+        }
+      };
+
+      recorder.onstop = async () => {
+        try {
+          setStatus("Converting to normal wording...");
+
+          const audioBlob = new Blob(chunksRef.current, { type: "audio/webm" });
+          const tx = await transcribe(audioBlob);
+          const heard = tx.transcript || "";
+
+          setRawTranscript(heard);
+
+          let suggestionList = [];
+          try {
+            const sug = await suggest(heard, phrases);
+            suggestionList = sug.suggestions || [];
+            setSuggestions(suggestionList);
+          } catch (err) {
+            console.error(err);
+            setSuggestions([]);
+          }
+
+          const normal = normalizeToPlainEnglish(heard, phrases, suggestionList);
+          setNormalTranscript(normal);
+          setStatus("Done");
+        } catch (err) {
+          console.error(err);
+          setStatus("Could not transcribe");
+        } finally {
+          stopTracks();
+          setIsRecording(false);
+        }
+      };
+
+      recorder.start();
+    } catch (err) {
+      console.error(err);
+      setStatus("Microphone access failed");
+      setIsRecording(false);
+    }
+  }
+
+  function stopRecording() {
+    if (!isRecording) return;
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+      mediaRecorderRef.current.stop();
+    }
+  }
+
+  function speakText(text) {
+    if (!text) return;
+    const utterance = new SpeechSynthesisUtterance(text);
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(utterance);
+  }
+
+  function useSuggestedPhrase(phrase) {
+    setNormalTranscript(phrase);
+    speakText(phrase);
+  }
+
+  async function handleSavePhrase() {
+    const phrase = newPhrase.trim();
+    if (!phrase) return;
+
+    try {
+      const result = await savePhrase(phrase);
+      setPhrases(result.phrases || []);
+      setNewPhrase("");
+    } catch (err) {
+      console.error(err);
+      setStatus("Could not save phrase");
+    }
+  }
 
   return (
-    <div className="home-screen">
+    <div
+      style={{
+        minHeight: "100vh",
+        background: "#02383d",
+        color: "#8ce7df",
+        padding: "32px",
+        fontFamily: "Inter, system-ui, sans-serif",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: "24px",
+        }}
+      >
+        <h1 style={{ margin: 0, fontSize: "3.2rem", fontWeight: 700 }}>synova</h1>
 
-      <div className="circle circle-a" />
-      <div className="circle circle-b" />
-      <div className="circle circle-c" />
-      <div className="circle circle-d" />
-
-      {/* Top bar */}
-      <div className="top-bar">
-        <div>
-          <div className="logo">synova</div>
-        </div>
-
-        <div className="top-bar-right">
-          {/* Expand / collapse */}
-          <button className="top-icon-btn" onClick={() => setExpanded(!expanded)} aria-label={expanded ? "Collapse" : "Expand"}>
-            <svg width="20" height="20" viewBox="0 0 16 16" fill="none">
-              {expanded ? (
-                <>
-                  <path d="M6 1H1V6"   stroke="var(--accent)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M10 15H15V10" stroke="var(--accent)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-                </>
-              ) : (
-                <>
-                  <path d="M1 6V1H6"   stroke="var(--accent)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M15 10V15H10" stroke="var(--accent)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-                </>
-              )}
-            </svg>
+        <div style={{ display: "flex", gap: "12px" }}>
+          <button
+            onClick={() => setTab("speak")}
+            style={{
+              padding: "14px 22px",
+              borderRadius: "999px",
+              border: "1px solid rgba(140,231,223,0.35)",
+              background: tab === "speak" ? "rgba(140,231,223,0.18)" : "transparent",
+              color: "#8ce7df",
+              cursor: "pointer",
+            }}
+          >
+            Speak
           </button>
 
-          {/* Settings */}
-          <button className="top-icon-btn" onClick={() => setSettings(true)} aria-label="Settings">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="3"/>
-              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-            </svg>
+          <button
+            onClick={() => setTab("voicebank")}
+            style={{
+              padding: "14px 22px",
+              borderRadius: "999px",
+              border: "1px solid rgba(140,231,223,0.35)",
+              background: tab === "voicebank" ? "rgba(140,231,223,0.18)" : "transparent",
+              color: "#8ce7df",
+              cursor: "pointer",
+            }}
+          >
+            Voice Bank
           </button>
         </div>
       </div>
 
-      {/* Welcome heading */}
-      <div className="welcome-heading">{name ? `welcome ${name.toLowerCase()}` : "welcome"}</div>
+      {tab === "speak" && (
+        <>
+          <div
+            style={{
+              border: "1px solid rgba(140,231,223,0.18)",
+              borderRadius: "28px",
+              padding: "28px",
+              minHeight: "120px",
+              marginBottom: "20px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "#6cc8c2",
+              fontSize: "1.2rem",
+            }}
+          >
+            {status}
+          </div>
 
-      {/* Output box */}
-      <div className="output-box-wrap">
-        <div className="output-box">
-          <span className={`output-text${spoken ? "" : " output-text--empty"}`}>
-            {spoken || "Hold a phrase to speak"}
-          </span>
-          {spoken && (
-            <button className="again-btn" onClick={() => speak(spoken)}>
-              Again
+          <div
+            style={{
+              borderRadius: "28px",
+              padding: "28px",
+              minHeight: "150px",
+              marginBottom: "16px",
+              background: "rgba(255,255,255,0.05)",
+            }}
+          >
+            <div style={{ color: "#74cfc8", marginBottom: "10px", fontSize: "0.95rem" }}>
+              Normal wording
+            </div>
+            <div
+              style={{
+                color: normalTranscript ? "#c8fffb" : "#74cfc8",
+                fontSize: "1.35rem",
+                fontWeight: 600,
+                minHeight: "32px",
+              }}
+            >
+              {normalTranscript || "Your words will appear here"}
+            </div>
+
+            {rawTranscript && (
+              <div style={{ marginTop: "18px", color: "#74cfc8", fontSize: "0.95rem" }}>
+                Heard raw: {rawTranscript}
+              </div>
+            )}
+          </div>
+
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: "24px" }}>
+            <button
+              onMouseDown={startRecording}
+              onMouseUp={stopRecording}
+              onMouseLeave={stopRecording}
+              onTouchStart={startRecording}
+              onTouchEnd={stopRecording}
+              style={{
+                width: "180px",
+                height: "180px",
+                borderRadius: "999px",
+                border: "none",
+                background: isRecording ? "rgba(255,80,80,0.85)" : "rgba(140,231,223,0.18)",
+                color: "#8ce7df",
+                fontSize: "1.05rem",
+                fontWeight: 700,
+                cursor: "pointer",
+                boxShadow: "0 0 40px rgba(140,231,223,0.18)",
+              }}
+            >
+              {isRecording ? "RELEASE TO STOP" : "HOLD TO RECORD"}
             </button>
-          )}
-        </div>
-      </div>
+          </div>
 
-      {/* Phrase grid */}
-      <div className={`phrase-grid-wrap ${expanded ? "phrase-grid-wrap--expanded" : "phrase-grid-wrap--normal"}`}>
-        <div className={`phrase-grid ${expanded ? "phrase-grid--expanded" : "phrase-grid--normal"}`}>
-          {PHRASES.map(({ label }) => (
-            <DwellButton
-              key={label}
-              label={label}
-              onFire={() => speak(label)}
-              className={
-                expanded
-                  ? (medOn ? "dwell-btn--med-exp" : "dwell-btn--full-exp")
-                  : (medOn ? "dwell-btn--med"     : "dwell-btn--full")
-              }
-            />
-          ))}
-        </div>
-      </div>
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: "24px" }}>
+            <button
+              onClick={() => speakText(normalTranscript)}
+              style={{
+                padding: "12px 20px",
+                borderRadius: "14px",
+                border: "none",
+                background: "#8ce7df",
+                color: "#02383d",
+                fontWeight: 700,
+                cursor: "pointer",
+              }}
+            >
+              Speak aloud
+            </button>
+          </div>
 
-      <NavBar />
+          <div>
+            <h3 style={{ color: "#8ce7df", marginBottom: "12px" }}>Closest normal phrases</h3>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "12px" }}>
+              {suggestions.map((item) => (
+                <button
+                  key={item}
+                  onClick={() => useSuggestedPhrase(item)}
+                  style={{
+                    padding: "12px 16px",
+                    borderRadius: "999px",
+                    border: "1px solid rgba(140,231,223,0.28)",
+                    background: "rgba(255,255,255,0.05)",
+                    color: "#c8fffb",
+                    cursor: "pointer",
+                  }}
+                >
+                  {item}
+                </button>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
 
-      {settings && <SettingsSheet onClose={() => setSettings(false)} />}
+      {tab === "voicebank" && (
+        <>
+          <div style={{ marginBottom: "20px" }}>
+            <h3 style={{ color: "#8ce7df", marginBottom: "12px" }}>Saved normal phrases</h3>
 
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+                gap: "14px",
+                marginBottom: "24px",
+              }}
+            >
+              {phrases.map((phrase) => (
+                <button
+                  key={phrase}
+                  onClick={() => useSuggestedPhrase(phrase)}
+                  style={{
+                    minHeight: "76px",
+                    padding: "16px",
+                    borderRadius: "18px",
+                    border: "1px solid rgba(140,231,223,0.18)",
+                    background: "rgba(255,255,255,0.05)",
+                    color: "#c8fffb",
+                    textAlign: "left",
+                    cursor: "pointer",
+                  }}
+                >
+                  {phrase}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div
+            style={{
+              background: "rgba(255,255,255,0.05)",
+              borderRadius: "24px",
+              padding: "20px",
+            }}
+          >
+            <h3 style={{ color: "#8ce7df", marginTop: 0 }}>Add new normal phrase</h3>
+
+            <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+              <input
+                value={newPhrase}
+                onChange={(e) => setNewPhrase(e.target.value)}
+                placeholder="Type a phrase"
+                style={{
+                  flex: 1,
+                  minWidth: "220px",
+                  padding: "14px 16px",
+                  borderRadius: "14px",
+                  border: "1px solid rgba(140,231,223,0.25)",
+                  background: "rgba(0,0,0,0.12)",
+                  color: "#c8fffb",
+                  outline: "none",
+                }}
+              />
+
+              <button
+                onClick={handleSavePhrase}
+                style={{
+                  padding: "14px 18px",
+                  borderRadius: "14px",
+                  border: "none",
+                  background: "#8ce7df",
+                  color: "#02383d",
+                  fontWeight: 700,
+                  cursor: "pointer",
+                }}
+              >
+                Save phrase
+              </button>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
