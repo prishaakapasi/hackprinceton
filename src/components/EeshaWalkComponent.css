@@ -24,13 +24,8 @@
   letter-spacing: 4px;
   text-transform: uppercase;
   color: var(--accent);
-<<<<<<< HEAD
-  opacity: 0.78;
-  text-transform: uppercase;
-=======
   opacity: 0.55;
   transition: color 0.3s ease, opacity 0.3s ease;
->>>>>>> 340801e6 (Sound player and step detector)
 }
 
 .eesha-frozen .eesha-status {
@@ -103,11 +98,7 @@
   letter-spacing: 2px;
   text-transform: uppercase;
   color: var(--accent);
-<<<<<<< HEAD
-  opacity: 0.75;
-=======
   opacity: 0.4;
->>>>>>> 340801e6 (Sound player and step detector)
 }
 
 .eesha-stat-divider {

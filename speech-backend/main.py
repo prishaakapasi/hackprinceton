@@ -74,7 +74,7 @@ def get_phrases():
 @app.post("/save-phrase")
 async def save_phrase(
     phrase: str = Form(...),
-    audio: Optional[UploadFile] = File(None),
+    audio: Optional[UploadFile] = File(None),  # reserved for future voice recording storage
 ):
     phrases = load_phrases()
 

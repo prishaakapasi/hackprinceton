@@ -1,9 +1,4 @@
-<<<<<<< HEAD
-
-import { useEffect, useState } from "react";
-=======
-import React, { useEffect, useRef, useState } from "react";
->>>>>>> 340801e6 (Sound player and step detector)
+import { useEffect, useRef, useState } from "react";
 import "./EeshaWalkComponent.css";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -275,8 +270,6 @@ export default function EeshaWalkComponent({ audioCtx, soundType, onStop }) {
       nextInterval = 400;
     } else {
       // ── WALKING ─────────────────────────────────────────────────────────
-      // Always clear freeze here so the UI updates as soon as the next beat fires
-      // (don't rely on handleMotion alone — timing overlap can leave it stuck on frozen)
       setIsFrozen(false);
       const isLeft = s.side === 0;
       if (audioCtx) (PLAY_FN[soundType] ?? playTick)(audioCtx, isLeft ? -0.6 : 0.6, isLeft);
