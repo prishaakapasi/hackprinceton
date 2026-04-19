@@ -1,0 +1,10 @@
+[33mb5fc1d34[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m fix: remove node_modules to resolve permission denied
+[33m290f4951[m pre-sync backup
+[33m25b78476[m Sound player and step detector
+[33m4d304af4[m Ignore local backend virtualenv
+[33m91e49505[m Ignore local backend virtualenv
+[33mddc381f1[m Add phrase endpoints and webm audio handling
+[33md83df679[m Add compare endpoint and frontend compare helper
+[33m942d4ba5[m Add files via upload
+[33m058087a6[m fixing stuff
+[33m28108727[m working on design changes
