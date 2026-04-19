@@ -14,12 +14,33 @@ export async function transcribe(audioBlob) {
   });
 
   if (!res.ok) throw new Error(`Transcribe failed: ${res.status}`);
-  return res.json(); // { transcript: "..." }
+  return res.json();
 }
 
 /**
- * POST transcript text to /suggest
- * Returns { suggestions: string[] }
+ * POST audio blob to /compare
+ * Returns { standard: string, improved: string, comparison_mode: string }
+ */
+export async function compare(audioBlob, expectedText = "") {
+  const form = new FormData();
+  form.append("file", audioBlob, "recording.wav");
+
+  if (expectedText && expectedText.trim()) {
+    form.append("expected_text", expectedText.trim());
+  }
+
+  const res = await fetch(`${BASE_URL}/compare`, {
+    method: "POST",
+    body: form,
+  });
+
+  if (!res.ok) throw new Error(`Compare failed: ${res.status}`);
+  return res.json();
+}
+
+/**
+ * leave this for later
+ * it will still fail unless you add a matching backend/serverless route
  */
 export async function suggest(text) {
   const res = await fetch(`${BASE_URL}/suggest`, {
@@ -29,17 +50,17 @@ export async function suggest(text) {
   });
 
   if (!res.ok) throw new Error(`Suggest failed: ${res.status}`);
-  return res.json(); // { suggestions: [...] }
+  return res.json();
 }
 
 /**
- * POST a voice recording for a phrase to /save-phrase
- * Returns { ok: true }
+ * leave this for later
+ * it will still fail unless you add /save-phrase on the backend
  */
 export async function savePhrase(phrase, audioBlob) {
   const form = new FormData();
   form.append("phrase", phrase);
-  form.append("audio",  audioBlob, "phrase.webm");
+  form.append("audio", audioBlob, "phrase.webm");
 
   const res = await fetch(`${BASE_URL}/save-phrase`, {
     method: "POST",
